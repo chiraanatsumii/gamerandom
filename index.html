@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Tetris &amp; Block Blast</title> 
+    <link rel="stylesheet" href="style.css"> 
+</head> 
+<body> 
+
+    <div class="game-container"> 
+        <div class="action-controls"> 
+            <button onclick="mulaiGame()">Game Baru</button> 
+            <button id="pauseButton" onclick="toggleJeda()">Jeda</button>
+            <button onclick="tampilkanPemilihMode()">Pilih Game</button>
+        </div> 
+
+        <div class="game-board"> 
+            <canvas id="gameCanvas" width="200" height="400"></canvas> 
+            <canvas id="gridCanvas" class="grid-overlay" width="200" height="400"></canvas> 
+            
+            <div class="pause-screen" id="pauseScreen" onclick="toggleJeda()"> 
+                <h2>JEDA</h2> 
+                <p>klik di sini buat lanjut san</p> 
+            </div> 
+        </div> 
+
+        <div class="game-info"> 
+            <div class="mobile-controls"> 
+                <button id="btnLeft" ontouchstart="handleTouchStart(this, -1, 0)" ontouchend="handleTouchEnd()">◀️</button> 
+                <button id="btnRotate" ontouchstart="handleRotationTouch(this)" ontouchend="handleTouchEnd()">🔄</button> 
+                <button id="btnDrop" onclick="jatuhkanLangsung(this)">👇</button> 
+                <button id="btnRight" ontouchstart="handleTouchStart(this, 1, 0)" ontouchend="handleTouchEnd()">▶️</button> 
+            </div> 
+            
+            <div class="info-panel controls"> 
+                <strong>S / Panah Bawah</strong> - Jatuh Pelan <br> 
+                <button id="btnDown" ontouchstart="handleTouchStart(this, 0, 1, true)" ontouchend="handleTouchEnd()">⬇️ JATUH PELAN</button> 
+            </div> 
+        </div> 
+        <section class="block-blast" id="blockBlast" aria-label="Permainan Block Blast">
+            <canvas id="blockBlastCanvas" width="320" height="320" aria-label="Papan Block Blast"></canvas>
+            <div class="blast-celebration" id="blastCelebration" aria-hidden="true">
+                <strong>yey ksong</strong>
+                <div class="flower-burst" id="flowerBurst"></div>
+            </div>
+            <p id="blockBlastMessage" hidden></p>
+            <div class="piece-tray" id="pieceTray" aria-label="Pilihan bentuk"></div>
+        </section>
+        <section class="snake-game" id="snakeGame" aria-label="Permainan Snake 3D">
+            <div class="snake-toolbar">
+                <div class="snake-scoreboard">
+                    <span>SKOR <strong id="snakeScore">0</strong></span>
+                    <span>TERBAIK <strong id="snakeBest">0</strong></span>
+                </div>
+                <div class="snake-actions">
+                    <button id="snakeStartButton" type="button">Mulai</button>
+                    <button id="snakePauseButton" type="button" aria-label="Jeda atau lanjutkan">Jeda</button>
+                    <button id="snakeCameraButton" type="button" aria-label="Atur ulang kamera">Kamera</button>
+                </div>
+            </div>
+            <div class="snake-stage" id="snakeStage">
+                <canvas id="snakeCanvas" aria-label="Arena ular 3D"></canvas>
+                <div class="snake-overlay" id="snakeOverlay">
+                    <strong id="snakeOverlayTitle" hidden></strong>
+                    <span id="snakeOverlayText">Tekan kalo mau main</span>
+                </div>
+                <div class="snake-hint">puter kamera nya bisa gerak</div>
+            </div>
+            <div class="snake-options">
+                <div class="snake-palette" role="group" aria-label="Warna ular">
+                    <span class="snake-label">WARNA ULAR</span>
+                    <button type="button" class="snake-swatch is-selected" data-snake-color="#f2bd4b" style="--swatch:#f2bd4b" aria-label="Emas"></button>
+                    <button type="button" class="snake-swatch" data-snake-color="#f26b5b" style="--swatch:#f26b5b" aria-label="Coral"></button>
+                    <button type="button" class="snake-swatch" data-snake-color="#40b8a0" style="--swatch:#40b8a0" aria-label="Hijau laut"></button>
+                    <button type="button" class="snake-swatch" data-snake-color="#6388e8" style="--swatch:#6388e8" aria-label="Biru"></button>
+                    <button type="button" class="snake-swatch" data-snake-color="#d888cb" style="--swatch:#d888cb" aria-label="Pink"></button>
+                    <label class="snake-upload-button" for="snakeSkinUpload">Galeri</label>
+                    <input id="snakeSkinUpload" type="file" accept="image/*" aria-label="Pilih skin dari galeri">
+                </div>
+                <div class="snake-joystick" id="snakeJoystick" role="group" aria-label="Joystick arah Snake">
+                    <span class="joystick-mark joystick-up" aria-hidden="true">▲</span>
+                    <span class="joystick-mark joystick-left" aria-hidden="true">◀</span>
+                    <span class="joystick-mark joystick-down" aria-hidden="true">▼</span>
+                    <span class="joystick-mark joystick-right" aria-hidden="true">▶</span>
+                    <button class="joystick-knob" id="snakeJoystickKnob" type="button" aria-label="Geser joystick untuk mengarahkan ular"></button>
+                </div>
+            </div>
+            <p class="snake-status" id="snakeStatus" aria-live="polite" hidden></p>
+        </section>
+    </div> 
+    <div class="game-over" id="gameOver">
+        <h2 id="gameOverTitle">game</h2>
+        <p id="gameOverMessage"></p>
+        <p>Skor Akhir: <span id="finalScore"></span> | <span id="finalMetricLabel">Baris</span>: <span id="finalLines"></span></p>
+        <p id="newHighSore" style="color: #ffff00; font-weight: bold; display: none;">🏆 horass</p>
+        <button id="playAgainButton" onclick="mulaiGame()">Main Lagi</button>
+    </div>
+    <div class="mode-select" id="modeSelect" role="dialog" aria-labelledby="modeTitle">
+        <img class="furry-mascot" src="silly-cat2.jpeg" alt="Silly cat">
+        <div class="mode-select-content">
+            <p class="mode-kicker">pilih gem</p>
+            <h1 id="modeTitle">rek maen naon</h1>
+            <p class="mode-description">Pilih mode</p>
+            <div class="mode-options">
+                <button class="mode-option tetris-option" onclick="pilihMode('tetris')">
+                    <span class="mode-symbol" aria-hidden="true">▦</span>
+                    <span><strong>Tetris</strong><small>game jaman dlu</small></span>
+                </button>
+                <button class="mode-option blast-option" onclick="pilihMode('blockblast')">
+                    <span class="mode-symbol" aria-hidden="true">✣</span>
+                    <span><strong>Block Blast</strong><small>game blok </small></span>
+                </button>
+                <button class="mode-option snake-option" onclick="pilihMode('snake')">
+                    <span class="mode-symbol" aria-hidden="true">🐍</span>
+                    <span><strong>urar3D</strong><small>urar 3D</small></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="javascript.js"></script>
+    <script src="snake3d.js?v=snake-hide-copy-11"></script>
+</body>
+</html>
